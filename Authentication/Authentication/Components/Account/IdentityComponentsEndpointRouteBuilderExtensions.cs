@@ -1,6 +1,6 @@
 using Authentication.Components.Account.Pages;
 using Authentication.Components.Account.Pages.Manage;
-using Authentication.Data;
+using Authentication.Models.UsersModels;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Http.Extensions;

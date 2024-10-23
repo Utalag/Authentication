@@ -1,5 +1,5 @@
 using Authentication.Client;
-using Authentication.Data;
+using Authentication.Models.UsersModels;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Components.Server;

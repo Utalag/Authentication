@@ -19,6 +19,18 @@ namespace Authentication.Client
 
         private readonly Task<AuthenticationState> authenticationStateTask = defaultUnauthenticatedTask;
 
+        // This constructor is called by the server-side code to create the provider with the user's
+        // authentication state. The state is passed in as a JSON-serialized string.
+        // If the state is missing or invalid, the provider will remain unauthenticated.
+        // For more information, see https://docs.microsoft.com/aspnet/core/security/blazor/?view=aspnetcore-5.0&tabs=visual-studio#server-side-blazor-with-cookie-authentication
+
+        //CZ:
+        // Tento konstruktor je volán kódem na stranì serveru k vytvoøení poskytovatele s uživatelem
+        // stav autentizace. Stav je pøedán jako øetìzec serializovaný JSON.
+        // Pokud stav chybí nebo je neplatný, poskytovatel zùstane neovìøený.
+
+
+
         public PersistentAuthenticationStateProvider(PersistentComponentState state)
         {
             if(!state.TryTakeFromJson<UserInfo>(nameof(UserInfo),out var userInfo) || userInfo is null)

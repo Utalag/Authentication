@@ -5,15 +5,30 @@
 
 <h1>Counter</h1>
 
+
+
 <p role="status">Current count: @currentCount</p>
 
-<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+<AuthorizeView>
+        <Authorized>
+            <h6>Faster</h6>
+        <button class="btn btn-primary" @onclick="()=>IncrementCount(10)">Click me</button>
+    </Authorized>
+    <NotAuthorized>
+        <h6>Slower</h6>
+        <button class="btn btn-primary" @onclick="()=>IncrementCount(1)">Click me</button>
+        <p>
+            <a href="Account/Login">Log in</a>
+        </p>
+    </NotAuthorized>
+</AuthorizeView>
+
 
 @code {
     private int currentCount = 0;
 
-    private void IncrementCount()
+    private void IncrementCount(int multiplier)
     {
-        currentCount++;
+        currentCount+=multiplier;
     }
 }

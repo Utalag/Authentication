@@ -2,6 +2,7 @@ using Authentication.Client.Pages;
 using Authentication.Components;
 using Authentication.Components.Account;
 using Authentication.Data;
+using Authentication.Models.UsersModels;
 using Microsoft.AspNetCore.Components.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;

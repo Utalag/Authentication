@@ -2,13 +2,34 @@
 
 @using Microsoft.AspNetCore.Authorization
 
-@attribute [Authorize]
+
+@* Tato stránka vyžaduje autorizaci
+Pokud uživatel není přihlášený, bude přesměrován na stránku přihlášení*@
+@*@attribute [Authorize] *@
+
 @rendermode InteractiveAuto
 
 <PageTitle>Auth</PageTitle>
 
 <h1>You are authenticated</h1>
 
+<!--!! AuthorizeView poskytuje context typu AuthenticationState pro informace o přihlášeném uživateli -->
+
+
+
 <AuthorizeView>
-    Hello @context.User.Identity?.Name!
+    <Authorized>
+         <h4>Ahoj @context.User.Identity?.Name!</h4>
+         <p>
+            <a href="Account/Lockout">Log out</a>
+        </p>
+    </Authorized>
+
+    <NotAuthorized>
+        <h4>Nejsi přihlášený</h4
+            <p>
+            <a href="Account/Login">Log in</a>
+        </p>
+    </NotAuthorized>
 </AuthorizeView>
+

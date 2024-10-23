@@ -8,6 +8,7 @@
 }
 else
 {
+    <h1>Account Layout</h1>
     @Body
 }
 
@@ -22,6 +23,11 @@ else
             // If this code runs, we're currently rendering in interactive mode, so there is no HttpContext.
             // The identity pages need to set cookies, so they require an HttpContext. To achieve this we
             // must transition back from interactive mode to a server-rendered page.
+
+            //Cz: 
+            // Pokud se tento kód spustí, aktuálně vykreslujeme v interaktivním režimu, takže neexistuje žádný HttpContext.
+            // Stránky identity potřebují nastavit cookies, takže vyžadují HttpContext. Abychom toho dosáhli my
+            // musí přejít zpět z interaktivního režimu na stránku vykreslenou serverem.
             NavigationManager.Refresh(forceReload: true);
         }
     }
