@@ -1,0 +1,70 @@
+﻿@page "/Account/Manage/SolutionRoles"
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Identity
+@using Authentication.Data
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+
+
+@* @rendermode InteractiveServer *@
+    
+<PageTitle>SolutionRoles</PageTitle>
+    
+    
+
+<h3>SolutionRole</h3>
+<p>Zde se budou přiřazovat role k uživatelům.  </p>
+<h4>Omezit přístup pro Admina a SuperAdmina</h4>
+
+<h5>Komponenta s testovacími daty</h5>
+<hr />
+
+@* <StatusMessage /> *@
+
+<EditForm FormName="RoleSelector" Model="Model" OnValidSubmit="SaveRole">
+
+    <DataAnnotationsValidator />
+    <ValidationSummary class="text-danger" role="alert" />
+
+    <InputSelect @bind-Value="Model.UserId" class="form-control">
+        <option value="1">Karel</option>
+        <option value="2">Pepa</option>
+        <option value="3">Ondra</option>
+        <option value="4">Tomáš</option>
+        <option value="5">Franta</option>
+    </InputSelect>
+
+    <InputSelect @bind-Value="Model.RoleName" class="form-control">
+        <option value="Admin">Admin</option>
+        <option value="SuperAdmin">SuperAdmin</option>
+        <option value="Follower">Follower</option>
+        <option value="Pj">PJ(DM)</option>
+        <option value="Player">Player</option>
+    </InputSelect>
+
+    <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
+</EditForm>
+
+
+
+@code {
+
+    private RoleModel Model { get; set; } = new RoleModel();
+
+    private void SaveRole()
+    {
+
+    }
+
+    private sealed class RoleModel()
+    {
+        public string? RoleName { get; set; } = " ";
+
+        public int UserId { get; set; }
+        public string UserName { get; set; } = " ";
+   }
+
+
+}
