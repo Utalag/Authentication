@@ -1,0 +1,208 @@
+﻿@page "/Account/Manage/SetRoles"
+
+@attribute [Authorize(Roles = "Admin")]
+
+@using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
+@using Microsoft.AspNetCore.Identity
+@using Authentication.Data
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
+@using System.Security.Claims
+@inject UserManager<ApplicationUser> UserManager
+@inject SignInManager<ApplicationUser> SignInManager
+@inject IdentityUserAccessor UserAccessor
+@inject IdentityRedirectManager RedirectManager
+@inject RoleManager<IdentityRole> RoleManager
+@rendermode InteractiveServer
+
+
+    <PageTitle>SetRoles</PageTitle>
+
+
+<h3>Roles</h3>
+
+<div class="row">
+    <div class="col-sm-2">
+        <EditForm FormName="NewRoleForm" Model="RModel" OnValidSubmit="AddNewRoleAsync">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputText id="NewRole" @bind-Value="RModel.NewRole" class="form-control" placeholder="Zadej název role." />
+            <ValidationMessage For="() => RModel.NewRole" class="text-danger" />
+
+            <span><button type="submit" class="btn btn-primary">Add new Role</button></span>
+        </EditForm>
+    </div>
+
+    <div class="col-sm-6">
+    
+        @foreach(var item in roles)
+        {
+           <label class="form-control btn-outline-info">@item.Name</label>
+           
+        }
+   
+    </div>
+</div>
+
+
+
+<hr/>
+
+
+<h3>Claims: </h3>
+<div class="row">
+    <div class="col-sm-2">
+        <EditForm FormName="NewClaimForm" Model="CModel" OnValidSubmit="()=>NewCustomClaimAsync(CModel.SelectRole,CModel.Type,CModel.Value)">
+            <DataAnnotationsValidator />
+            <ValidationSummary />
+
+            <InputSelect @bind-Value="CModel.SelectRole" class="form-control">
+                <option value="">"Vyber roli"</option>
+                @foreach(var item in roles)
+                {
+                    <option value="@item.Name">@item.Name</option>
+                }
+            </InputSelect>
+
+            <InputText id="New ClaimType" @bind-Value="CModel.Type" class="form-control" placeholder="Typ claimu." />
+            <ValidationMessage For="() => CModel.Type" class="text-danger" />
+
+            <InputText id="NewClaimValue" @bind-Value="CModel.Value" class="form-control" placeholder="Hodnota claimu." />
+            <ValidationMessage For="() => CModel.Value" class="text-danger" />
+
+            <button type="submit" class="btn btn-primary">Add new Claim</button>
+        </EditForm>
+    </div>
+
+    <div class="col-sm-6">
+
+
+        @foreach(var roleClaim in claimsDictionary)
+        {
+            <span>Nazev role: </span> @roleClaim.Key.Name
+
+            @if(roleClaim.Value.Count == 0)
+            {
+                <label class="form-control btn-outline-info">No claims</label>
+            }
+            else
+            {
+            @foreach(var value in roleClaim.Value)
+            {
+                    <label class="form-control btn-outline-info">
+                        @value.Type
+                        <span> : </span>
+                        @value.Value
+                    </label>
+                
+            }
+            }
+            
+
+        }
+
+    </div>
+</div>
+
+
+
+
+
+
+@code {
+    [CascadingParameter]
+    private HttpContext HttpContext { get; set; } = default!;
+    /// <summary>
+    /// All roles in the Database
+    /// </summary>
+    private List<IdentityRole> roles = new List<IdentityRole>();
+
+
+    private Dictionary<IdentityRole, IList<Claim>> claimsDictionary = new Dictionary<IdentityRole,IList<Claim>>(); 
+    private IList<Claim> claims = new List<Claim>();
+
+
+    RoleModel RModel = new();
+    ClaimModel CModel = new();
+
+
+    protected override async void OnInitialized()
+    {
+        roles = RoleManager.Roles.ToList();
+        RModel.NewRole = string.Empty;
+        CModel.Type = string.Empty;
+        CModel.Value = string.Empty;
+        CModel.SelectRole = string.Empty;
+
+
+        foreach(var itemRole in roles)
+        {
+            var claim = await RoleManager.GetClaimsAsync(itemRole);
+
+            claimsDictionary.Add(itemRole,claim);
+
+            foreach(var item in claim)
+            {
+                if(!claims.Contains(item))
+                {
+                   claims.Add(item);
+                }
+            }
+        }
+    }
+
+
+    private async Task AddNewRoleAsync()
+    {
+
+        if(string.IsNullOrWhiteSpace(RModel.NewRole))
+        {
+            return;
+        }
+        var existRole = await RoleManager.RoleExistsAsync(RModel.NewRole);
+        if (!existRole)
+        {
+            var role = new IdentityRole(RModel.NewRole);
+            var result = await RoleManager.CreateAsync(role);
+            if (result.Succeeded)
+            {
+
+                roles.Add(role);
+            }
+        }
+    }
+
+
+
+    private async Task NewCustomClaimAsync(string role,string type, string value )
+    {
+        // ověřit zda role existuje
+        // pokud ano, získat všechny claims
+        // pokud ne, vrátit prázdný list
+
+        // Get current role
+        var identity = await RoleManager.FindByNameAsync(role);
+        if (identity != null)
+        {
+            // Set new claim
+            var claim = new Claim(type, value);
+            // Add claim to role
+            var result = await RoleManager.AddClaimAsync(identity,claim);
+            StateHasChanged();
+
+        }
+    }
+    private sealed class RoleModel
+    {
+        public string? NewRole { get; set; }
+
+    }
+
+    private sealed class ClaimModel
+    {
+        public string? Type { get; set; }
+        public string? Value { get; set; }
+        public string? SelectRole { get; set; }
+    }
+}

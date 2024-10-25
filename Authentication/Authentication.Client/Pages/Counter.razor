@@ -1,31 +1,85 @@
 ﻿@page "/counter"
-@rendermode InteractiveAuto
+@using System.Security.Claims
+@rendermode InteractiveServer
+
+@inject AuthenticationStateProvider AuthenticationStateProvider
 
 <PageTitle>Counter</PageTitle>
 
-<h1>Counter</h1>
+
+<h1 class="text-center">Counter</h1>
+<hr/>
+
+<div class="row">
+    <div class="col-auto">
+        
+
+                @if(user.IsInRole("Admin"))
+                {
+
+                    <!-- Admin -->
+                    <h3>Slower (+1)</h3>
+                    
+                    <button class="btn btn-primary" @onclick="() => IncrementCount(1)">Click me</button>
+                    <hr />
+                    <h3>Faster (+10)</h3>
+                    <h4>Admin function</h4>
+                    <p>Premium function</p>
+                    <button class="btn btn-primary" @onclick="() => IncrementCount(10)">Click me</button>
+                }
+                else if(user.IsInRole("User"))
+                {
+                    <!-- User -->
+                    <h3>Slower (+1)</h3>
+                    
+                    <button class="btn btn-primary" @onclick="() => IncrementCount(1)">Click me</button>
+                    <hr />
+                    <h3>Faster (+5)</h3>
+                    <h4>User function</h4>
+                    <p>Premium function</p>
+                    <button class="btn btn-primary" @onclick="() => IncrementCount(5)">Click me</button>
+                }
+                else
+                {
 
 
-
-<p role="status">Current count: @currentCount</p>
-
-<AuthorizeView>
-        <Authorized>
-            <h6>Faster</h6>
-        <button class="btn btn-primary" @onclick="()=>IncrementCount(10)">Click me</button>
-    </Authorized>
-    <NotAuthorized>
-        <h6>Slower</h6>
+        <h3>Slower (+1)</h3>
+        
         <button class="btn btn-primary" @onclick="()=>IncrementCount(1)">Click me</button>
         <p>
-            <a href="Account/Login">Log in</a>
+            <a href="Account/Login" class="btn">Log in</a>
         </p>
-    </NotAuthorized>
-</AuthorizeView>
+
+        }
+    </div>
+    <div class="col-auto">
+        <h1 class="text-center" role="status">Current count:</h1>
+        <h1 class="text-center"> @currentCount</h1>
+    </div>
+</div>
 
 
 @code {
     private int currentCount = 0;
+    private bool isAdmin = false;
+    private bool isUser = false;
+    private ClaimsPrincipal user;
+
+    protected override async Task OnInitializedAsync()
+    {
+        
+        var authState = await AuthenticationStateProvider.GetAuthenticationStateAsync();
+         user = authState.User;
+
+        isAdmin = user.IsInRole("Admin");
+        isUser = user.IsInRole("User");
+
+        // Debugging output
+        Console.WriteLine("Initialize");
+        Console.WriteLine($"User is authenticated: {user.Identity.Name}");
+        Console.WriteLine($"User is in Admin role: {isAdmin}");
+        Console.WriteLine($"User is in User role: {isUser}");
+    }
 
     private void IncrementCount(int multiplier)
     {

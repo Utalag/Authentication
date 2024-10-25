@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.Identity.Client;
 
 namespace Authentication.Models.UsersModels
@@ -12,6 +13,7 @@ namespace Authentication.Models.UsersModels
         public string NickName { get; set; } = string.Empty;            //Deadpoll
         public string Title { get; set; } = string.Empty;               //Mr.
 
+        public virtual List<IdentityRole> Roles { get; set; } = new List<IdentityRole>();
 
     }
 

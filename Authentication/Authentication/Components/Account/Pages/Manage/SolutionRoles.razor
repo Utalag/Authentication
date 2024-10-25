@@ -1,14 +1,18 @@
 ﻿@page "/Account/Manage/SolutionRoles"
+@attribute [Authorize(Roles = "Admin,User")]
+
 @using System.ComponentModel.DataAnnotations
+@using Microsoft.AspNetCore.Authorization
 @using Microsoft.AspNetCore.Identity
 @using Authentication.Data
+@using Microsoft.AspNetCore.Identity.EntityFrameworkCore
 @inject UserManager<ApplicationUser> UserManager
 @inject SignInManager<ApplicationUser> SignInManager
 @inject IdentityUserAccessor UserAccessor
 @inject IdentityRedirectManager RedirectManager
+@inject RoleManager<IdentityRole> RoleManager
 
-
-@* @rendermode InteractiveServer *@
+@rendermode InteractiveServer
     
 <PageTitle>SolutionRoles</PageTitle>
     
@@ -21,48 +25,68 @@
 <h5>Komponenta s testovacími daty</h5>
 <hr />
 
-@* <StatusMessage /> *@
 
-<EditForm FormName="RoleSelector" Model="Model" OnValidSubmit="SaveRole">
+
+<EditForm FormName="RoleSelector" Model="Model" OnValidSubmit="SaveRoleAsync">
 
     <DataAnnotationsValidator />
     <ValidationSummary class="text-danger" role="alert" />
 
+
+
     <InputSelect @bind-Value="Model.UserId" class="form-control">
-        <option value="1">Karel</option>
-        <option value="2">Pepa</option>
-        <option value="3">Ondra</option>
-        <option value="4">Tomáš</option>
-        <option value="5">Franta</option>
+        <option value="">"Vyber uživatele"</option>
+        @foreach(var item in users)
+        {
+            <option value="@item.Id">@item.UserName</option>
+        }
     </InputSelect>
 
-    <InputSelect @bind-Value="Model.RoleName" class="form-control">
-        <option value="Admin">Admin</option>
-        <option value="SuperAdmin">SuperAdmin</option>
-        <option value="Follower">Follower</option>
-        <option value="Pj">PJ(DM)</option>
-        <option value="Player">Player</option>
-    </InputSelect>
-
+        <InputSelect @bind-Value="Model.RoleName" class="form-control">
+        <option value="">"Vyber roli"</option>
+            @foreach(var item in roles)
+            {
+                 <option value="@item.Name">@item.Name</option>
+            }
+        </InputSelect>
     <button type="submit" class="w-100 btn btn-lg btn-primary">Save</button>
 </EditForm>
+
+
+<a href="Account/Manage/SetRoles" class="btn btn-info">Nové role a oprávnění</a>
+
+
 
 
 
 @code {
 
-    private RoleModel Model { get; set; } = new RoleModel();
+    private List<ApplicationUser> users = new();
+    private List<IdentityRole> roles = new();
 
-    private void SaveRole()
+    protected override void OnInitialized()
     {
-
+        users = UserManager.Users.ToList();
+        roles = RoleManager.Roles.ToList();
+        Model.UserId = string.Empty;
+        Model.RoleName = string.Empty;
     }
 
-    private sealed class RoleModel()
+
+    private RoleModel Model { get; set; } = new RoleModel();
+
+    private async void SaveRoleAsync()
+    {
+        var userData = await UserManager.FindByIdAsync(Model.UserId);
+        var succeededStatus = await UserManager.AddToRoleAsync(userData,Model.RoleName);
+    }
+
+    
+
+    private class RoleModel
     {
         public string? RoleName { get; set; } = " ";
-
-        public int UserId { get; set; }
+        public string UserId { get; set; } = " ";
         public string UserName { get; set; } = " ";
    }
 

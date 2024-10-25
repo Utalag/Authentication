@@ -11,32 +11,36 @@ namespace Authentication.Data
     {
         readonly UserManager<ApplicationUser> userManager;
         readonly RoleManager<IdentityRole> roleManager;
-        readonly ILogger<Seed_Role_User> logger;
+        readonly ILogger<Seed_Role_User> logger = new Logger<Seed_Role_User>(new LoggerFactory());
 
-        public Seed_Role_User(UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager,ILogger<Seed_Role_User> logger)
+        public Seed_Role_User(UserManager<ApplicationUser> userManager,RoleManager<IdentityRole> roleManager)
         {
             this.userManager = userManager;
             this.roleManager = roleManager;
-            this.logger = logger;
+
         }
 
-        public string Role_Admin { get; set; } = "Admin";
-        public string Role_User { get; set; } = "User";
+        public const string Role_Admin = "Admin";
+        public const string Role_User  = "User";
 
         private string admin_Email = "admin@admin.com";
         private string admin_Password = "Qwert123!";
 
+        public async void Init()
+        {
+            await InitAsync();
+        }
 
         public async Task InitAsync()
         {
-            if(await roleManager.Roles.AnyAsync() && await userManager.Users.AnyAsync())
-            {
+            //if(await roleManager.Roles.AnyAsync() && await userManager.Users.AnyAsync())
+            //{
                 logger.LogInformation("Roles and users already exist. Skipping initialization.");
-                return;
-            }
+            //    return;
+            //}
 
-            await SeedRolesAsync();
             await SeedUsersAsync();
+            await SeedRolesAsync();
         }
 
 
