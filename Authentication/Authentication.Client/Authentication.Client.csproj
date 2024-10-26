@@ -9,8 +9,24 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Content Remove="Pages\Sudoku.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="8.0.6" />
     <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="8.0.6" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <UpToDateCheckInput Remove="Pages\Sudoku.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="Pages\Sudoku.razor" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="Pages\Sudoku\Sudoku.razor" />
   </ItemGroup>
 
 </Project>

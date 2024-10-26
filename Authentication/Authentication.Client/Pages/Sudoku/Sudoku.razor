@@ -1,0 +1,338 @@
+﻿@page "/sudoku"
+@rendermode InteractiveAuto
+
+<h3>Sudoku</h3>
+<h6>Počet změn: @numberChange</h6>
+
+<div class="cellbox">
+    <!--Hrací pole komponenta-->
+    @for(int x = 0;x < gameBoard.GetLength(0);x++)
+    {
+        <div>
+            @for(int y = 0;y < gameBoard.GetLength(1);y++)
+            {
+                 int localX = x;
+                 int localY = y;
+
+           @*  <lable>@string.Join(",",@gameBoard[localX,localY].PossibleValues)</lable> *@
+            <input value="@gameBoard[localX, localY]" class="singlecell" style="@gameBoard[localX, localY].Background"
+                   @onchange="@(e => Change(e, localX, localY))" />
+                     
+            }
+        </div>
+    }
+
+</div>
+
+
+
+
+@code 
+{
+
+
+    private const int subGridSize = 3;
+    private const int gridSize = 9;
+    private int numberChange = 0;
+
+    private CellModel[,] gameBoard = new CellModel[gridSize, gridSize];
+
+    private CellModel selectedCell;
+
+    protected override void OnInitialized()
+    {
+        // set all cells to 0
+        for (int x = 0; x < gridSize; x++)
+        {
+            for (int y = 0; y < gridSize; y++)
+            {
+                gameBoard[x,y]= new CellModel(x,y);
+            }
+        }
+        // Inicializace selectedCell
+        selectedCell = new CellModel(0,0);
+        gameBoard[0,2].IsSolid = true;
+        gameBoard[5,7].IsSolid = true;
+        gameBoard[0,2].Number = 6;
+        gameBoard[5,7].Number = 3;
+        gameBoard[0,6].IsFailnigInRow = true;
+        gameBoard[0,0].Number = 5;
+        gameBoard[0,1].Number = 2;
+        gameBoard[1,0].PossibleValues = new List<int> { 1,2,3,4,5,6,7,8,9 };
+
+
+        // SudokuGenerator generator = new SudokuGenerator();
+        // int[,] generatedBoard = generator.Generate();
+
+        // for(int x = 0;x < gridSize;x++)
+        // {
+        //     for(int y = 0;y < gridSize;y++)
+        //     {
+        //         gameBoard[x,y] = new CellModel(x,y)
+        //             {
+        //                 Number = generatedBoard[x,y]
+        //             };
+        //     }
+        // }
+
+    }
+
+    private List<CellModel> InitGameBordValues()
+    {
+
+
+        return null;
+    }
+
+
+
+
+    private void Change(ChangeEventArgs e,int x,int y)
+    {
+        if(int.TryParse(e.Value.ToString(),out int newValue))
+        {
+            selectedCell.Number = newValue;
+            selectedCell.Column = x;
+            selectedCell.Row = y;
+
+            gameBoard[x, y].Number = newValue;
+
+            CellModel transitoryCell = new CellModel();
+            transitoryCell.Number = newValue;
+            transitoryCell.Column = y;
+            transitoryCell.Row = x;
+
+
+            Check(transitoryCell);
+            numberChange++;
+        }
+    }
+
+    // All contol logic
+    private void Check(CellModel cell)
+    {
+        selectedCell = cell;
+        CheckRowAndColumn(cell);
+        CheckSection(cell);
+    }
+
+    private void CheckRowAndColumn(CellModel cell)
+    {
+
+        int rowNumber = cell.Row;
+        int columnNumber = cell.Column;
+        List<int> rowValue = new List<int>();
+        List<int> columnValue = new List<int>();
+        rowValue.Clear();
+        columnValue.Clear();
+
+        // get all values in row
+        for(int y = 0;y < gridSize;y++)
+        {
+            rowValue.Add(gameBoard[rowNumber,y].Number);
+        }
+        // get all values in column
+        for(int x = 0;x < gridSize;x++)
+        {
+            columnValue.Add(gameBoard[x,columnNumber].Number);
+        }
+
+        // grouping values in row
+        var groupedRow = rowValue.Where(h => h > 0)                  //without nubler 0
+                                    .GroupBy(group => group).ToList()   //group by number
+                                    .Select(group => new { Value = group.Key,Count = group.Count() }).ToList();     //count of number
+                                                                                                                    // grouping values in row
+        var groupedColumn = columnValue.Where(h => h > 0)                  //without nubler 0
+                                    .GroupBy(group => group).ToList()   //group by number
+                                    .Select(group => new { Value = group.Key,Count = group.Count() }).ToList();     //count of number
+
+        // set failing in row
+        foreach(var item in groupedRow)
+        {
+            if (item.Count > 1)
+            {
+                for(int i = 0;i < gridSize;i++)
+                {
+                    if(!gameBoard[rowNumber,i].IsSolid)
+                    {
+                        gameBoard[rowNumber,i].IsFailnigInRow = true;
+                    }
+
+                }
+                break;
+            }
+            else
+            {
+                for(int i = 0;i < gridSize;i++)
+                {
+                    gameBoard[rowNumber,i].IsFailnigInRow = false;
+                }
+            }
+        }
+
+        // set failing in column
+        foreach(var item in groupedColumn)
+        {
+            if(item.Count > 1)
+            {
+                for(int i = 0;i < gridSize;i++)
+                {
+                    if(!gameBoard[i,columnNumber].IsSolid)
+                    {
+                        gameBoard[i,columnNumber].IsFailnigInColumn = true;
+                    }
+                }
+                break;
+            }
+            else
+            {
+                for(int i = 0;i < gridSize;i++)
+                {
+                    gameBoard[i,columnNumber].IsFailnigInColumn = false;
+                }
+            }
+        }
+    }
+
+    private void CheckSection(CellModel cell)
+    {
+        var indexList= SectionIndexes(cell);
+        List<int> sectionData = new List<int>();
+        sectionData.Clear();
+
+        foreach(var index in indexList)
+        {
+            sectionData.Add(gameBoard[index.Item1,index.Item2].Number);
+        }
+
+        var groupedColumn = sectionData.Where(h => h > 0)                  //without nubler 0
+                                   .GroupBy(group => group).ToList()   //group by number
+                                   .Select(group => new { Value = group.Key,Count = group.Count() }).ToList();     //count of number
+
+        // set failing in row
+        foreach(var item in groupedColumn)
+        {
+            if(item.Count > 1)
+            {
+                foreach(var value in indexList)
+                {
+                    if(!gameBoard[value.Item1,value.Item2].IsSolid)
+                    {
+                        gameBoard[value.Item1,value.Item2].IsFailnigInSection = true;  
+                    }
+                }
+                break;
+            }
+            else
+            {
+                foreach(var value in indexList)
+                {
+                    gameBoard[value.Item1,value.Item2].IsFailnigInSection = false;
+                }
+            }
+        }
+
+    }
+
+    private void FillingOptions()
+    {
+        
+
+    }
+
+
+    private List<ValueTuple<int,int>> SectionIndexes(CellModel cell)
+    {
+        List<ValueTuple<int,int>> sectionValue = new List<ValueTuple<int,int>>();
+        switch(cell.Row)
+        {
+            case 0:
+            case 1:
+            case 2:
+            sectionValue=SectionColumnFromRow([0,1,2],cell.Column);
+            break;
+
+            case 3:
+            case 4:
+            case 5:
+            sectionValue = SectionColumnFromRow([3,4,5],cell.Column);
+            break;
+
+            case 6:
+            case 7:
+            case 8:
+            sectionValue = SectionColumnFromRow([6,7,8],cell.Column);
+            break;
+        }
+
+        List<ValueTuple<int,int>> SectionColumnFromRow(int[] x,int y)
+        {
+            List<ValueTuple<int,int>> sectionValue = new List<ValueTuple<int,int>>();
+
+            switch(y)
+            {
+                case 0:
+                case 1:
+                case 2:
+                foreach(var row in x)
+                {
+                    for(int column = 0;column < 3;column++)
+                    {
+                        sectionValue.Add(new(row,column));
+                    }
+                }
+                break;
+
+                case 3:
+                case 4:
+                case 5:
+                foreach(var row in x)
+                {
+                    for(int column = 3;column < 6;column++)
+                    {
+                        sectionValue.Add(new(row,column));
+                    }
+                }
+                break;
+
+                case 6:
+                case 7:
+                case 8:
+                foreach(var row in x)
+                {
+                    for(int column = 6;column < 9;column++)
+                    {
+                        sectionValue.Add(new(row,column));
+                    }
+                }
+                break;
+            }
+            return sectionValue;
+        }
+        return sectionValue;
+    }
+
+   
+
+
+
+}
+
+
+<style>
+
+    .singlecell {
+        width: 50px;
+        height: 50px;
+        border: 1px solid black;
+        display: inline-block;
+        text-align: center;
+        line-height: 50px;
+        text-decoration: none;
+        
+    }
+
+
+    }</style>
+
+
